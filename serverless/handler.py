@@ -77,5 +77,9 @@ def predict(event, context):
         # get the first item in the prediction array, as it is a 1-1 prediction
         response = result['predictions'][0][0]
 
-    return wrap_response(status_code=200, body={"prediction": response, "time": time.time() - start})
+    return wrap_response(status_code=200, body={
+        "prediction": response,
+        "time": time.time() - start,
+        "endpoint": SAGEMAKER_ENDPOINT_NAME
+    })
 
