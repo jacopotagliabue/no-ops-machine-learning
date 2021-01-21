@@ -118,7 +118,7 @@ class RegressionModel(FlowSpec):
             data = in_file.read()
             with S3(run=self) as s3:
                 url = s3.put(TAR_NAME, data)
-                print("Message saved at: {}".format(url))
+                print("Model saved at: {}".format(url))
                 # save this path for downstream reference!
                 self.s3_path = url
         # finally join with the others
