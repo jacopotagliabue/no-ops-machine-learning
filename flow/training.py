@@ -15,25 +15,28 @@ a specific use case. In this example you can see:
 
 """
 
-from metaflow import FlowSpec, step, IncludeFile, batch, S3
+from metaflow import FlowSpec, step, IncludeFile, batch, S3, Parameter
 import time
 import numpy as np
 from io import StringIO
 import os
-from dotenv import load_dotenv
 from random import choice
-# load env vars
-load_dotenv(dotenv_path='.env', verbose=True)
 
 
 class RegressionModel(FlowSpec):
 
     # if a static file is part of the flow, it can be called in any downstream process, gets versioned etc.
     # https://docs.metaflow.org/metaflow/data#data-in-local-files
-    data_file = IncludeFile('dataset',
-                            help='Text File With Regression Numbers',
-                            is_text=True,
-                            default='dataset.txt')
+    DATA_FILE = IncludeFile(
+        'dataset',
+        help='Text File With Regression Numbers',
+        is_text=True,
+        default='dataset.txt')
+
+    S3_BUCKET_MODEL_PREFIX = Parameter(
+        'model_bucket',
+        help='Name of s3 bucket storing model tar files',
+        required=True)
 
     @step
     def start(self):
@@ -42,9 +45,8 @@ class RegressionModel(FlowSpec):
         Read data in, and parallelize model building with two params (in this case, dummy example with learning rate).
 
         """
-        self.start_time = time.time()
         # data is an array of lines from the text file containing the numbers
-        raw_data = StringIO(self.data_file).readlines()
+        raw_data = StringIO(self.DATA_FILE).readlines()
         print("Total of {} rows in the dataset!".format(len(raw_data)))
         # cast strings to float and prepare for training
         self.dataset = [[float(_) for _ in d.strip().split('\t')] for d in raw_data]
@@ -59,7 +61,7 @@ class RegressionModel(FlowSpec):
         self.learning_rates = [0.1, 0.2]
         self.next(self.train_model, foreach='learning_rates')
 
-    # @batch(gpu=1, memory=80000)
+    @batch(gpu=1, memory=80000)
     @step
     def train_model(self):
         """
@@ -107,7 +109,7 @@ class RegressionModel(FlowSpec):
         # metaflow nice s3 client needs a byte object for the put
         with open(TAR_NAME, "rb") as in_file:
             data = in_file.read()
-            with S3(s3root=os.getenv('S3_BUCKET_MODEL_PREFIX').format(FOLDER_NAME)) as s3:
+            with S3(s3root=self.S3_BUCKET_MODEL_PREFIX.format(FOLDER_NAME)) as s3:
                 s3.put(TAR_NAME, data)
         # finally join with the others
         self.next(self.join_runs)
@@ -128,7 +130,7 @@ class RegressionModel(FlowSpec):
         FOLDER_NAME = "regression-model-{}".format(self.best_learning_rate)
         TAR_NAME = 'model-{}.tar.gz'.format(self.best_learning_rate)
         self.best_s3_model_path = '{}/{}'.format(
-            os.getenv('S3_BUCKET_MODEL_PREFIX').format(FOLDER_NAME),
+            self.S3_BUCKET_MODEL_PREFIX.format(FOLDER_NAME),
             TAR_NAME)
         # next, deploy
         self.next(self.deploy)
@@ -164,9 +166,10 @@ class RegressionModel(FlowSpec):
         # run a small test against the endpoint
         # pick a number for X and check the predicted Y is sensible
         input = {'instances': np.array([[0.57457947234]])}
+        # output is on the form {'predictions': [[10.879798]]}
         result = predictor.predict(input)
         print(input, result)
-        assert result > 0
+        assert result['predictions'][0][0] > 0
         self.next(self.end)
 
     @step
@@ -176,8 +179,7 @@ class RegressionModel(FlowSpec):
         is a natural necessity for machine learning DAGs.
 
         """
-        self.dag_duration = time.time() - self.start_time
-        print('Dag ended after {} seconds.'.format(self.dag_duration))
+        print('Dag ended!')
 
 
 if __name__ == '__main__':
