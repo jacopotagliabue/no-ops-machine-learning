@@ -156,3 +156,6 @@ venv/
 *.env
 *.json
 *.txt
+*.metaflow
+*.gz
+*model-*/
