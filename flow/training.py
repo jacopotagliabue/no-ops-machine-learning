@@ -15,11 +15,10 @@ a specific use case. In this example you can see:
 
 """
 
-from metaflow import FlowSpec, step, IncludeFile, batch, S3, Parameter
+from metaflow import FlowSpec, step, IncludeFile, batch, S3
 import time
 import numpy as np
 from io import StringIO
-import os
 from random import choice
 
 
@@ -32,11 +31,6 @@ class RegressionModel(FlowSpec):
         help='Text File With Regression Numbers',
         is_text=True,
         default='dataset.txt')
-
-    S3_BUCKET_MODEL_PREFIX = Parameter(
-        'model_bucket',
-        help='Name of s3 bucket storing model tar files',
-        required=True)
 
     @step
     def start(self):
@@ -109,8 +103,11 @@ class RegressionModel(FlowSpec):
         # metaflow nice s3 client needs a byte object for the put
         with open(TAR_NAME, "rb") as in_file:
             data = in_file.read()
-            with S3(s3root=self.S3_BUCKET_MODEL_PREFIX.format(FOLDER_NAME)) as s3:
-                s3.put(TAR_NAME, data)
+            with S3(run=self) as s3:
+                url = s3.put(TAR_NAME, data)
+                print("Message saved at: {}".format(url))
+                # save this path for downstream reference!
+                self.s3_path = url
         # finally join with the others
         self.next(self.join_runs)
 
@@ -120,18 +117,17 @@ class RegressionModel(FlowSpec):
         Join the parallel runs and merge results into a dictionary.
         """
         # merge results (loss) from runs with different learning rates
-        self.results_from_runs = {inp.learning_rate: inp.results for inp in inputs}
+        self.results_from_runs = {
+            inp.learning_rate:
+                {
+                    'metrics': inp.results,
+                    'tar': inp.s3_path
+                }
+            for inp in inputs}
         print("Current results: {}".format(self.results_from_runs))
         # pick one according to some rule, say smaller loss (here just pick a random one)
         self.best_learning_rate = choice(list(self.results_from_runs.keys()))
-        # rebuild here the full s3 path to the target model file, as stored in S3
-        # note: this is repeated from above step, a better naming convention can be enforced here
-        # but just making it work for now
-        FOLDER_NAME = "regression-model-{}".format(self.best_learning_rate)
-        TAR_NAME = 'model-{}.tar.gz'.format(self.best_learning_rate)
-        self.best_s3_model_path = '{}/{}'.format(
-            self.S3_BUCKET_MODEL_PREFIX.format(FOLDER_NAME),
-            TAR_NAME)
+        self.best_s3_model_path = self.results_from_runs[self.best_learning_rate]['tar']
         # next, deploy
         self.next(self.deploy)
 
