@@ -15,7 +15,7 @@ a specific use case. In this example you can see:
 
 """
 
-from metaflow import FlowSpec, step, IncludeFile, batch, S3
+from metaflow import FlowSpec, step, IncludeFile, batch, S3, Parameter
 import time
 import numpy as np
 from io import StringIO
@@ -31,6 +31,19 @@ class RegressionModel(FlowSpec):
         help='Text File With Regression Numbers',
         is_text=True,
         default='dataset.txt')
+
+    # uri from: https://github.com/aws/deep-learning-containers/blob/master/available_images.md
+    DOCKER_IMAGE_URI = Parameter(
+        name='sagemaker_image',
+        help='AWS Docker Image URI for SageMaker Inference',
+        default='763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.3.0-gpu-py37-cu102-ubuntu18.04'
+    )
+
+    SAGEMAKER_INSTANCE = Parameter(
+        name='sagemaker_instance',
+        help='AWS Instance to Power SageMaker Inference',
+        default='ml.p3.2xlarge'
+    )
 
     @step
     def start(self):
@@ -154,10 +167,10 @@ class RegressionModel(FlowSpec):
         # make sure this role has access to the bucket containing the model tar file!
         IAM_SAGE_ROLE = 'MetaSageMakerRole'
         model = TensorFlowModel(model_data=self.best_s3_model_path,
-                               image_uri='763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.3.0-gpu-py37-cu102-ubuntu18.04',
+                               image_uri=self.DOCKER_IMAGE_URI,
                                role=IAM_SAGE_ROLE)
         predictor = model.deploy(initial_instance_count=1,
-                                instance_type='ml.p3.2xlarge',
+                                instance_type=self.SAGEMAKER_INSTANCE,
                                 endpoint_name=ENDPOINT_NAME)
         # run a small test against the endpoint
         # pick a number for X and check the predicted Y is sensible
