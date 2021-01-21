@@ -9,6 +9,8 @@ config = configparser.ConfigParser()
 config.read('settings.ini')
 # grab environment variables
 SAGEMAKER_ENDPOINT_NAME = os.getenv('SAGEMAKER_ENDPOINT_NAME')
+# print to AWS for debug!
+print(SAGEMAKER_ENDPOINT_NAME)
 # instantiate AWS client for invoking sagemaker endpoint
 runtime = boto3.client('runtime.sagemaker',
                        aws_access_key_id=config['sagemaker']['SAGE_USER'],
@@ -65,14 +67,15 @@ def predict(event, context):
     params = event['queryStringParameters']
     response = dict()
     start = time.time()
-    input_payload = { 'instances': [[]] }  # input is array of array, even if we just ask for 1 prediction here
+    input_payload = { 'instances': [[float(params.get('x', '0.0'))]] }  # input is array of array, even if we just ask for 1 prediction here
     result = get_response_from_sagemaker(json.dumps(input_payload),
                                          SAGEMAKER_ENDPOINT_NAME,
                                          content_type='application/json')
     if result:
         # print for debugging in AWS Cloudwatch
         print(result)
-        response = result['predictions'][0]  # get the first item in the prediction array, as it is a 1-1 prediction
+        # get the first item in the prediction array, as it is a 1-1 prediction
+        response = result['predictions'][0][0]
 
     return wrap_response(status_code=200, body={"prediction": response, "time": time.time() - start})
 

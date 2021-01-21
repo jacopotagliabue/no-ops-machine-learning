@@ -11,6 +11,8 @@ provider:
 
 functions:
   prediction_api:
+    environment:
+      SAGEMAKER_ENDPOINT_NAME: ${opt:sagemaker}
     handler: handler.predict
     events:
       - http:
