@@ -8,7 +8,7 @@ The functions are not particularly terse, but we aim for explanatory power over 
 compromise between a toy-example far removed from anything real, and something over-complicated and too tailored to
 a specific use case. In this example you can see:
 
-* the use of static file, versioned by MetaFlow automatically;
+* the use of static files, versioned by MetaFlow automatically;
 * the use of the "fanout" capability, allowing parallel execution of steps;
 * the use of the "batch" capability, in which local execution and cloud-enhanced computing co-exist seamlessly;
 * a GPU-backed deployment and prediction testing in 10 lines of code.
@@ -73,10 +73,8 @@ class RegressionModel(FlowSpec):
     def train_model(self):
         """
 
-        Train a dummy regression model (https://www.tensorflow.org/tutorials/keras/regression) to predict a value
-        with the simple y = alpha x + beta model.
-
-        To make sure our GPU setup is working we print some verbose logging (totally unnecessary)
+        Train a dummy regression model with Keras (https://www.tensorflow.org/tutorials/keras/regression)
+        and use high-performance s3 client from metaflow to store the model tar file for further processing.
 
         """
         # this is the CURRENT learning rate in the fan-out
