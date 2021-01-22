@@ -28,7 +28,7 @@ In this project you can see:
 In a nutshell, three main tools are used:
 
 * [Metaflow](https://metaflow.org/), to orchestrate the pipeline in a consistent and scalable manner;
-* SageMaker, to host a trained Keras model and provide real-time inference through an internal AWS endpoint;
+* [SageMaker](https://aws.amazon.com/sagemaker/), to host a trained Keras model and provide real-time inference through an internal AWS endpoint;
 * [serverless](https://www.serverless.com/), to configure and deploy an external-facing endpoint (public API) that connects clients 
 making GET requests to the model predictions served by the SageMaker endpoint.
 
