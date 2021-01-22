@@ -41,28 +41,26 @@ The `flow` folder contains the necessary code to train several models over a tar
 results in s3 and then deploying the best performing variant to a SageMaker endpoint.
 
 The `serverless` folder contains the necessary code to launch a lambda-powered endpoint, exposing SageMaker
-predictions to clients.
+predictions to client applications.
 
 
 ## How to Run the Full Tutorial
 
-### 0. Prerequisite for the Development Environment
+### 0. Prerequisites for the Development Environment
 
-Make sure to have properly configured in your developer setup the following services:
+Make sure to have properly configured in your developer machine the following tools:
 
 * AWS credentials to access the relevant cloud services;
-* Metaflow, configured to use the [AWS metastore](https://docs.metaflow.org/metaflow-on-aws/metaflow-on-aws), 
-not the local setup;
+* Metaflow, configured to use the [AWS metastore](https://docs.metaflow.org/metaflow-on-aws/metaflow-on-aws);
 * [Serverless](https://www.serverless.com/). 
 
-If you are running the script from a virtual environment, 
-make sure to install the packages specified
-in the `requirements.txt`.
+If you are running the script from a virtual environment, first install 
+the packages specified in the `requirements.txt`.
 
 ### 1. Create a Dataset
 
-Run the `create_dataset.py` script in the `flow` folder: a `dataset.txt` file with artificial data
-will be created in the folder - the file is imported in the DAG to simulate the 
+Run the `create_dataset.py` script in the `flow` folder to create a `dataset.txt` file 
+with artificial data - the file is imported in the DAG to simulate the 
 target dataset.
 
 ### 2. Train and Deploy a Model
@@ -71,9 +69,10 @@ Cd ino the `flow` folder and run the command:
 
 `python training.py run`
 
-The Metaflow DAG will start and run from data loading, to shipping a trained model to a
-newly created SageMaker endpoint. We suggest to comment the `@batch(gpu=1, memory=80000)` decorator
-for the first run, to verify the end-to-end local computation is working as expected.
+The Metaflow DAG will run from data loading (first step), to shipping a trained model to a
+newly created SageMaker endpoint (last step). 
+We suggest to comment the `@batch(gpu=1, memory=80000)` decorator 
+for the first run, to verify that the end-to-end local computation is working as expected.
 
 At the end of the DAG, the terminal will print the name of the SageMaker endpoint hosting the
 model. Write the name down as it will be used to power the public lambda endpoint.
@@ -91,8 +90,8 @@ If all goes well, after a minute you should be greeted by a success message:
 
 ![picture alt](https://cdn-images-1.medium.com/max/1600/1*U_-c7PrafMlzqKs4Qq6kaw.png "Serverless successful deployment")
 
-By copying and pasting the GET url into the browser, we can get a real-time prediction from 
-our model by passing the *x* parameter, e.g.:
+By copying and pasting the GET url into the browser, you can get a real-time prediction from 
+the model by passing the *x* parameter, e.g.:
 
 `https://my-url.amazonaws.com/dev/predict?x=9.45242`
 
