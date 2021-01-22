@@ -1,5 +1,5 @@
 # no-ops-machine-learning
-_A PaaS End-to-End ML Setup with Metaflow, Serverless and Sagemaker._
+_A PaaS End-to-End ML Setup with Metaflow, Serverless and SageMaker._
 
 - - - -
 
@@ -52,7 +52,7 @@ Make sure to have properly configured in your developer machine the following to
 
 * AWS credentials to access the relevant cloud services;
 * Metaflow, configured to use the [AWS metastore](https://docs.metaflow.org/metaflow-on-aws/metaflow-on-aws);
-* [Serverless](https://www.serverless.com/). 
+* [Serverless](https://www.serverless.com/framework/docs/providers/aws/guide/credentials/). 
 
 If you are running the script from a virtual environment, first install 
 the packages specified in the `requirements.txt`.
