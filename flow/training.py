@@ -39,6 +39,7 @@ class RegressionModel(FlowSpec):
         default='763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.3.0-gpu-py37-cu102-ubuntu18.04'
     )
 
+    # NOTE: this is expensive! Remember to SHUT IT DOWN in your AWS after completing the tutorial!
     SAGEMAKER_INSTANCE = Parameter(
         name='sagemaker_instance',
         help='AWS Instance to Power SageMaker Inference',
@@ -104,22 +105,22 @@ class RegressionModel(FlowSpec):
         print("Test set results: {}".format(self.results))
         # save model: IMPORTANT: TF models need to have a version
         # see: https://github.com/aws/sagemaker-python-sdk/issues/1484
-        FOLDER_NAME = "regression-model-{}".format(self.learning_rate)
-        MODEL_NAME = "{}/1".format(FOLDER_NAME)
-        TAR_NAME = 'model-{}.tar.gz'.format(self.learning_rate)
-        x_model.save(filepath=MODEL_NAME)
-        # zip keras folder to a single file
-        with tarfile.open(TAR_NAME, mode="w:gz") as _tar:
-            _tar.add(MODEL_NAME, recursive=True)
+        model_name = "regression-model-{}/1".format(self.learning_rate)
+        local_tar_name = 'model-{}.tar.gz'.format(self.learning_rate)
+        x_model.save(filepath=model_name)
+        # zip keras folder to a single tar file
+        with tarfile.open(local_tar_name, mode="w:gz") as _tar:
+            _tar.add(model_name, recursive=True)
         # metaflow nice s3 client needs a byte object for the put
-        with open(TAR_NAME, "rb") as in_file:
+        with open(local_tar_name, "rb") as in_file:
             data = in_file.read()
             with S3(run=self) as s3:
-                url = s3.put(TAR_NAME, data)
+                url = s3.put(local_tar_name, data)
+                # print it out for debug purposes
                 print("Model saved at: {}".format(url))
                 # save this path for downstream reference!
                 self.s3_path = url
-        # finally join with the others
+        # finally join with the other runs
         self.next(self.join_runs)
 
     @step
@@ -127,7 +128,7 @@ class RegressionModel(FlowSpec):
         """
         Join the parallel runs and merge results into a dictionary.
         """
-        # merge results (loss) from runs with different learning rates
+        # merge results (loss) from runs with different parameters
         self.results_from_runs = {
             inp.learning_rate:
                 {
@@ -136,7 +137,7 @@ class RegressionModel(FlowSpec):
                 }
             for inp in inputs}
         print("Current results: {}".format(self.results_from_runs))
-        # pick one according to some rule, say smaller loss (here just pick a random one)
+        # pick one according to some logic, e.g. smaller loss (here just pick a random one)
         self.best_learning_rate = choice(list(self.results_from_runs.keys()))
         self.best_s3_model_path = self.results_from_runs[self.best_learning_rate]['tar']
         # next, deploy
