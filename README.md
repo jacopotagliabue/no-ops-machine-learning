@@ -48,7 +48,8 @@ predictions to client applications.
 
 ### 0. Prerequisites for the Development Environment
 
-Make sure to have properly configured in your developer machine the following tools:
+The project was developed and tested on Python 3.7; please make sure to have properly 
+configured the following tools in your developer machine:
 
 * AWS credentials to access the relevant cloud services;
 * Metaflow, configured to use the [AWS metastore](https://docs.metaflow.org/metaflow-on-aws/metaflow-on-aws); 
@@ -56,8 +57,7 @@ please note that if the `@batch` decorator is commented out, a local setup will 
 project will then fail to showcase the integration between local and cloud computing;
 * [Serverless](https://www.serverless.com/framework/docs/providers/aws/guide/credentials/). 
 
-If you are running the script from a virtual environment, first install 
-the packages specified in the `requirements.txt`.
+Finally, make sure to install the packages specified in the `requirements.txt` file.
 
 ### 1. Create a Dataset
 
