@@ -113,6 +113,12 @@ class RegressionModel(FlowSpec):
         with tarfile.open(local_tar_name, mode="w:gz") as _tar:
             _tar.add(model_name, recursive=True)
         # metaflow nice s3 client needs a byte object for the put
+        # IMPORTANT: if you're using the metaflow local setup,
+        # you have to upload the model to S3 for
+        # sagemaker using custom code - replace the metaflow client here with a standard
+        # boto call and a target bucket over which you have writing permissions
+        # remember to store in self.s3_path the final full path of the model tar file, to be used
+        # downstream by sagemaker!
         with open(local_tar_name, "rb") as in_file:
             data = in_file.read()
             with S3(run=self) as s3:
