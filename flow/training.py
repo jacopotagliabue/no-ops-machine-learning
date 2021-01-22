@@ -69,6 +69,7 @@ class RegressionModel(FlowSpec):
         self.learning_rates = [0.1, 0.2]
         self.next(self.train_model, foreach='learning_rates')
 
+    # comment out @batch if you want to run the parallel steps locally and not on AWS
     @batch(gpu=1, memory=80000)
     @step
     def train_model(self):
