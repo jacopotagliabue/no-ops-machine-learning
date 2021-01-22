@@ -51,7 +51,9 @@ predictions to client applications.
 Make sure to have properly configured in your developer machine the following tools:
 
 * AWS credentials to access the relevant cloud services;
-* Metaflow, configured to use the [AWS metastore](https://docs.metaflow.org/metaflow-on-aws/metaflow-on-aws);
+* Metaflow, configured to use the [AWS metastore](https://docs.metaflow.org/metaflow-on-aws/metaflow-on-aws); 
+please note that if the `@batch` decorator is commented out, a local setup will work as well, but the 
+project will then fail to showcase the integration between local and cloud computing;
 * [Serverless](https://www.serverless.com/framework/docs/providers/aws/guide/credentials/). 
 
 If you are running the script from a virtual environment, first install 
