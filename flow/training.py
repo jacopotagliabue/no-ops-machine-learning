@@ -46,6 +46,14 @@ class RegressionModel(FlowSpec):
         default='ml.p3.2xlarge'
     )
 
+    # this is the name of the IAM role with SageMaker permissions
+    # make sure this role has access to the bucket containing the tar file!
+    IAM_SAGEMAKER_ROLE = Parameter(
+        name='sagemaker_role',
+        help='AWS Role for SageMaker',
+        default='MetaSageMakerRole'
+    )
+
     @step
     def start(self):
         """
@@ -169,12 +177,9 @@ class RegressionModel(FlowSpec):
         ENDPOINT_NAME = 'regression-{}-endpoint'.format(int(round(time.time() * 1000)))
         # print out the name, so that we can use it when deploying our lambda
         print("\n\n================\nEndpoint name is: {}\n\n".format(ENDPOINT_NAME))
-        # this is the name of the IAM role with SageMaker permissions
-        # make sure this role has access to the bucket containing the model tar file!
-        IAM_SAGE_ROLE = 'MetaSageMakerRole'
         model = TensorFlowModel(model_data=self.best_s3_model_path,
                                image_uri=self.DOCKER_IMAGE_URI,
-                               role=IAM_SAGE_ROLE)
+                               role=self.IAM_SAGEMAKER_ROLE)
         predictor = model.deploy(initial_instance_count=1,
                                 instance_type=self.SAGEMAKER_INSTANCE,
                                 endpoint_name=ENDPOINT_NAME)
