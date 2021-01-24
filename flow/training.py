@@ -177,12 +177,14 @@ class RegressionModel(FlowSpec):
         ENDPOINT_NAME = 'regression-{}-endpoint'.format(int(round(time.time() * 1000)))
         # print out the name, so that we can use it when deploying our lambda
         print("\n\n================\nEndpoint name is: {}\n\n".format(ENDPOINT_NAME))
-        model = TensorFlowModel(model_data=self.best_s3_model_path,
-                               image_uri=self.DOCKER_IMAGE_URI,
-                               role=self.IAM_SAGEMAKER_ROLE)
-        predictor = model.deploy(initial_instance_count=1,
-                                instance_type=self.SAGEMAKER_INSTANCE,
-                                endpoint_name=ENDPOINT_NAME)
+        model = TensorFlowModel(
+            model_data=self.best_s3_model_path,
+            image_uri=self.DOCKER_IMAGE_URI,
+            role=self.IAM_SAGEMAKER_ROLE)
+        predictor = model.deploy(
+            initial_instance_count=1,
+            instance_type=self.SAGEMAKER_INSTANCE,
+            endpoint_name=ENDPOINT_NAME)
         # run a small test against the endpoint
         # pick a number for X and check the predicted Y is sensible
         input = {'instances': np.array([[0.57457947234]])}
