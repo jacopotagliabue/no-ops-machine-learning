@@ -67,7 +67,7 @@ target dataset.
 
 ### 2. Train and Deploy a Model
 
-Cd ino the `flow` folder and run the command: 
+Cd into the `flow` folder and run the command: 
 
 `python training.py run`
 

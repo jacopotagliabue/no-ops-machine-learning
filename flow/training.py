@@ -15,7 +15,7 @@ a specific use case. In this example you can see:
 
 """
 
-from metaflow import FlowSpec, step, IncludeFile, batch, S3, Parameter
+from metaflow import FlowSpec, step, IncludeFile, batch, S3, Parameter, current
 import time
 import numpy as np
 from io import StringIO
@@ -61,6 +61,11 @@ class RegressionModel(FlowSpec):
         Read data in, and parallelize model building with two params (in this case, dummy example with learning rate).
 
         """
+        # debug printing - this is from https://docs.metaflow.org/metaflow/tagging
+        # to show how information about the current run can be accessed programmatically
+        print("flow name: %s" % current.flow_name)
+        print("run id: %s" % current.run_id)
+        print("username: %s" % current.username)
         # data is an array of lines from the text file containing the numbers
         raw_data = StringIO(self.DATA_FILE).readlines()
         print("Total of {} rows in the dataset!".format(len(raw_data)))
