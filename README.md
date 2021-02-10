@@ -8,7 +8,7 @@ an endpoint serving predictions through a repeatable, modular and scalable proce
 More importantly, all of this is achieved in minutes from a developer laptop, without 
 explicitly deploying/maintaining *any infrastructure*.
 
-For the full context and details about the tutorial, please refer to the blog post (WIP).
+For the full context and details about the tutorial, please refer to the [blog post](https://towardsdatascience.com/noops-machine-learning-3893a42e32a4).
 
 ## Overview
 
